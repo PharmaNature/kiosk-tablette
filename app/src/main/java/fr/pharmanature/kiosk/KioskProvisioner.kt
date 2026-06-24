@@ -105,7 +105,36 @@ object KioskProvisioner {
         }
         runCatching { dpm.setStatusBarDisabled(admin, false) }
         runCatching { dpm.setKeyguardDisabled(admin, false) }
+        restoreSystemLauncher(context, dpm, admin)
+    }
+
+    /**
+     * Redonne l'écran d'accueil au launcher SYSTÈME (ex. Samsung One UI Home).
+     * Sur certains Samsung, clearPackagePersistentPreferredActivities ne retire pas
+     * notre app comme HOME par défaut -> on force explicitement l'autre launcher,
+     * sinon on reste piégé dans l'app après "Arrêter".
+     */
+    private fun restoreSystemLauncher(
+        context: Context,
+        dpm: DevicePolicyManager,
+        admin: ComponentName
+    ) {
         runCatching { dpm.clearPackagePersistentPreferredActivities(admin, context.packageName) }
+        runCatching {
+            val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+            val other = context.packageManager.queryIntentActivities(homeIntent, 0)
+                .firstOrNull { it.activityInfo.packageName != context.packageName }
+            if (other != null) {
+                val filter = IntentFilter(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                    addCategory(Intent.CATEGORY_DEFAULT)
+                }
+                dpm.addPersistentPreferredActivity(
+                    admin, filter,
+                    ComponentName(other.activityInfo.packageName, other.activityInfo.name)
+                )
+            }
+        }
     }
 
     /**
