@@ -1,6 +1,7 @@
 [versions]
-# AGP 9.x est requis pour compileSdk/targetSdk 36 et fournit Kotlin (2.2.x) en interne.
-agp = "9.0.2"
+# AGP 9.x est requis pour compileSdk/targetSdk 36 et fournit Kotlin en interne.
+# AGP 9.2.1 exige Gradle >= 9.4.1 (voir gradle-wrapper.properties).
+agp = "9.2.1"
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
 activity = "1.10.1"

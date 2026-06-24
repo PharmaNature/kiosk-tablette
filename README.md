@@ -139,8 +139,8 @@ de l'écran admin, ou en dernier recours un **factory reset**.
 
 | Composant | Version |
 |---|---|
-| AGP | 9.0.2 |
-| Gradle | 9.1.0 |
+| AGP | 9.2.1 |
+| Gradle | 9.4.1 |
 | Kotlin | 2.2.x (intégré à AGP 9) |
 | JDK (build) | 17 |
 | compileSdk / targetSdk | 36 (Android 16) |
