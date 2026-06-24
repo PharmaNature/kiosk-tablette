@@ -88,10 +88,11 @@ object KioskProvisioner {
     }
 
     /**
-     * Décommissionnement complet : retire restrictions, préférence HOME et
-     * statut Device Owner — SANS factory reset. La tablette redevient normale.
+     * Libère toutes les contraintes (restrictions, barre de statut, keyguard, HOME) mais
+     * GARDE le statut Device Owner. La tablette redevient utilisable et on peut relancer
+     * le kiosk depuis l'app, sans PC. Utilisé par « Arrêter le kiosk ».
      */
-    fun deprovision(context: Context) {
+    fun release(context: Context) {
         val dpm = dpm(context)
         if (!dpm.isDeviceOwnerApp(context.packageName)) return
         val admin = admin(context)
@@ -105,6 +106,15 @@ object KioskProvisioner {
         runCatching { dpm.setStatusBarDisabled(admin, false) }
         runCatching { dpm.setKeyguardDisabled(admin, false) }
         runCatching { dpm.clearPackagePersistentPreferredActivities(admin, context.packageName) }
+    }
+
+    /**
+     * Décommissionnement complet : libère tout PUIS retire le statut Device Owner
+     * — SANS factory reset. La tablette redevient totalement normale.
+     */
+    fun deprovision(context: Context) {
+        release(context)
+        val dpm = dpm(context)
         runCatching { dpm.clearDeviceOwnerApp(context.packageName) }
     }
 }

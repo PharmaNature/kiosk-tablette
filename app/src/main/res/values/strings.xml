@@ -20,8 +20,10 @@
     <string name="corner_bl">Bas gauche</string>
     <string name="corner_br">Bas droite</string>
     <string name="admin_launch">Lancer le mode kiosk</string>
-    <string name="admin_stop">Arrêter le kiosk (déverrouiller)</string>
-    <string name="admin_deprovision">Désactiver complètement le mode kiosk</string>
+    <string name="admin_stop">Arrêter le kiosk (pause)</string>
+    <string name="admin_stop_desc">Déverrouille la tablette. L\'app reste Device Owner : tu peux relancer le kiosk ici, sans PC.</string>
+    <string name="admin_deprovision">Rendre la tablette normale</string>
+    <string name="admin_deprovision_desc">Retire complètement le mode kiosk (Device Owner). ⚠️ Pour le réactiver, il faudra rebrancher un PC.</string>
 
     <!-- Validations -->
     <string name="admin_url_invalid">URL obligatoire (doit commencer par http:// ou https://)</string>

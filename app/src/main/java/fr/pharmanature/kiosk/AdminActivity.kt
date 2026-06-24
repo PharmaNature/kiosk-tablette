@@ -1,5 +1,6 @@
 package fr.pharmanature.kiosk
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.CheckBox
@@ -70,13 +71,17 @@ class AdminActivity : AppCompatActivity() {
         if (!saveSettings()) return
         config.kioskEnabled = true
         Toast.makeText(this, R.string.kiosk_started, Toast.LENGTH_SHORT).show()
-        // Retour à KioskActivity qui chargera l'URL et verrouillera (onResume).
+        // Ouvre l'écran kiosk (qui s'arme et se verrouille dans onResume).
+        startActivity(Intent(this, KioskActivity::class.java))
         finish()
     }
 
     private fun stopKiosk() {
         config.kioskEnabled = false
         runCatching { stopLockTask() }
+        // Libère restrictions / barre / keyguard / HOME (garde le Device Owner) :
+        // la tablette redevient utilisable, on peut relancer sans PC.
+        KioskProvisioner.release(this)
         Toast.makeText(this, R.string.kiosk_stopped, Toast.LENGTH_SHORT).show()
         finish()
     }

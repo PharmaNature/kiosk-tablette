@@ -26,13 +26,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
 /**
- * Activity HOME du kiosk. Deux états selon [KioskConfig.kioskEnabled] :
+ * Activity du kiosk (entrée LAUNCHER/HOME).
  *
- * - **kiosk NON lancé** : ouvre l'écran de configuration [AdminActivity] (et ne verrouille pas).
- * - **kiosk lancé** : affiche l'URL en plein écran verrouillé (Device Owner + lock task).
+ * - **Kiosk NON lancé** : route vers [AdminActivity] (écran de config) puis se retire
+ *   du back stack → on n'est JAMAIS coincé, un appui Accueil suffit à sortir.
+ * - **Kiosk lancé** : URL en plein écran verrouillé (Device Owner + lock task).
  *
  * Sortie du kiosk : [KioskConfig.tapCount] tapotements dans le coin choisi
- * ([KioskConfig.corner]) → saisie du PIN → [AdminActivity].
+ * ([KioskConfig.corner]) → PIN → [AdminActivity].
  */
 class KioskActivity : AppCompatActivity() {
 
@@ -40,7 +41,6 @@ class KioskActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private lateinit var root: FrameLayout
     private var loadedUrl: String = ""
-    private var adminLaunching = false
 
     // Détection des tapotements dans le coin.
     private var tapCounter = 0
@@ -54,6 +54,7 @@ class KioskActivity : AppCompatActivity() {
     private val backCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             // Back = navigation WebView interne uniquement ; jamais de sortie du kiosk.
+            // (Ce callback n'est enregistré qu'en mode kiosk, donc webView existe.)
             if (webView.canGoBack()) webView.goBack()
         }
     }
@@ -61,17 +62,26 @@ class KioskActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        config = KioskConfig(this)
+
+        // Kiosk non lancé -> écran de config, et on se retire (pas de WebView inutile,
+        // pas de boucle : on peut toujours quitter l'app normalement).
+        if (!config.kioskEnabled) {
+            stopLockIfActive()
+            startActivity(Intent(this, AdminActivity::class.java))
+            finish()
+            return
+        }
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
         // Écran allumé + affichage par-dessus le verrouillage (reboot / sortie de veille
-        // -> on revient directement sur le kiosk, sans étape de déverrouillage).
+        // -> retour direct au kiosk, sans déverrouillage).
         window.addFlags(
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                 or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                 or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
                 or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
         )
-
-        config = KioskConfig(this)
 
         root = FrameLayout(this)
         webView = WebView(this)
@@ -80,7 +90,6 @@ class KioskActivity : AppCompatActivity() {
         root.addView(webView, matchParent())
         setContentView(root)
 
-        // Gestion des encoches (displayCutout) sans casser l'edge-to-edge.
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
             val cut = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
             v.setPadding(cut.left, cut.top, cut.right, cut.bottom)
@@ -93,27 +102,19 @@ class KioskActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (!config.kioskEnabled) {
-            // Mode configuration : déverrouiller et montrer l'écran admin.
+            // Le kiosk a été arrêté pendant qu'on était dans l'app : libérer et router.
             stopLockIfActive()
-            if (!adminLaunching) {
-                adminLaunching = true
-                startActivity(Intent(this, AdminActivity::class.java))
-            }
+            startActivity(Intent(this, AdminActivity::class.java))
+            finish()
             return
         }
-        // Mode kiosk verrouillé.
-        // Ré-arme la liste blanche + restrictions à chaque reprise (auto-réparation :
-        // fonctionne même après une réactivation du Device Owner, sans reboot).
+        // Mode kiosk verrouillé. Ré-arme la liste blanche + restrictions à chaque reprise
+        // (auto-réparation : verrou fiable dès "Lancer", même après reprovisioning, sans reboot).
         KioskProvisioner.configure(this)
         hideSystemBars()
         applyRemoteCompat(webView)
         startLockTaskIfNeeded()
         if (config.url != loadedUrl) loadHome()
-    }
-
-    override fun onPause() {
-        super.onPause()
-        adminLaunching = false
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -122,8 +123,10 @@ class KioskActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        (webView.parent as? FrameLayout)?.removeView(webView)
-        webView.destroy()
+        if (::webView.isInitialized) {
+            (webView.parent as? FrameLayout)?.removeView(webView)
+            webView.destroy()
+        }
         super.onDestroy()
     }
 
@@ -147,7 +150,7 @@ class KioskActivity : AppCompatActivity() {
     }
 
     private fun handleCornerTap(x: Float, y: Float) {
-        if (!config.kioskEnabled) return
+        if (!this::config.isInitialized || !config.kioskEnabled || !this::root.isInitialized) return
         val c = CORNER_DP * resources.displayMetrics.density
         val w = root.width
         val h = root.height
