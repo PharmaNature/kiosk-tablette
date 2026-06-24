@@ -13,11 +13,12 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="20dp"
             android:text="@string/admin_title"
             android:textSize="22sp"
             android:textStyle="bold" />
 
+        <!-- URL -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -32,6 +33,22 @@
             android:importantForAutofill="no"
             android:inputType="textUri" />
 
+        <!-- PIN -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/admin_pin_label"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/inputPin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:importantForAutofill="no"
+            android:inputType="numberPassword" />
+
+        <!-- Tapotements -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -42,48 +59,78 @@
             android:id="@+id/inputTaps"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:importantForAutofill="no"
             android:inputType="number" />
 
-        <Button
-            android:id="@+id/btnSave"
+        <!-- Coin -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/admin_corner_label"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/groupCorner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/admin_save" />
+            android:layout_marginBottom="24dp"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/cornerTL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/corner_tl" />
+
+            <RadioButton
+                android:id="@+id/cornerTR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/corner_tr" />
+
+            <RadioButton
+                android:id="@+id/cornerBL"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/corner_bl" />
+
+            <RadioButton
+                android:id="@+id/cornerBR"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/corner_br" />
+        </RadioGroup>
+
+        <!-- Action principale -->
+        <Button
+            android:id="@+id/btnLaunch"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="@color/kiosk_green"
+            android:text="@string/admin_launch"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
         <Button
-            android:id="@+id/btnChangePin"
+            android:id="@+id/btnStop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/admin_change_pin" />
+            android:layout_marginTop="12dp"
+            android:text="@string/admin_stop" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="28dp"
             android:layout_marginBottom="16dp"
             android:background="#DDDDDD" />
-
-        <Button
-            android:id="@+id/btnResume"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/admin_resume" />
-
-        <Button
-            android:id="@+id/btnExitTemp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/admin_exit_temp" />
 
         <Button
             android:id="@+id/btnDeprovision"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
             android:backgroundTint="#B00020"
             android:text="@string/admin_deprovision"
             android:textColor="#FFFFFF" />

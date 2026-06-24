@@ -1,13 +1,18 @@
 # Kiosk PharmaNature — Tablette Android verrouillée (WebView)
 
-App Android transformant une tablette en **kiosk verrouillé** : au démarrage, elle affiche
-une page web en plein écran et bloque l'utilisateur dessus. Sortie protégée par **code PIN**.
+App Android transformant une tablette en **kiosk verrouillé**.
+
+**Fonctionnement :**
+1. À l'ouverture, l'app affiche un **écran de configuration** : URL, code PIN, nombre de
+   tapotements et **coin déclencheur**.
+2. On appuie sur **« Lancer le mode kiosk »** → la tablette passe en **plein écran verrouillé**
+   sur l'URL, impossible d'en sortir.
+3. Pour revenir à la config : **N tapotements dans le coin choisi** → saisie du **PIN** → écran admin.
 
 - **URL par défaut** : `http://172.16.40.54:5173/` (modifiable dans l'écran admin, sans recompiler)
-- **Sortie** : **5 tapotements** dans le coin **haut-gauche** → saisie du **PIN** → écran d'administration
-- **PIN initial** : `1234` — ⚠️ **à changer immédiatement** via l'écran admin
+- **PIN initial** : `1234` — ⚠️ **à changer** dans l'écran admin (champ PIN)
 - **Verrouillage** : mode **Device Owner** (lock task, pas de barre système, relance au boot,
-  ADB / factory reset / safe boot désactivés)
+  ADB / factory reset / safe boot désactivés). Le verrouillage réel exige le provisioning ADB (§4).
 
 ---
 
@@ -101,13 +106,11 @@ adb shell dumpsys device_policy | findstr "Device Owner"
 ## 5. Sortie, maintenance et retrait
 
 ### Accès admin (sur la tablette)
-**5 tapotements** dans le coin **haut-gauche** → saisir le **PIN** → écran d'administration :
-- Modifier l'**URL** affichée
-- Modifier le **nombre de tapotements**
-- **Changer le PIN**
-- **Reprendre le kiosk** (re-verrouille)
-- **Quitter temporairement** (déverrouille pour la maintenance ; se re-verrouille au retour sur l'app)
-- **Désactiver complètement le mode kiosk** (retire le statut Device Owner **sans factory reset**)
+**N tapotements** (le nombre choisi) dans le **coin choisi** → saisir le **PIN** → écran d'administration :
+- Modifier l'**URL**, le **PIN** (champ vide = inchangé), le **nombre de tapotements**, le **coin**
+- **Lancer le mode kiosk** (applique les réglages et re-verrouille)
+- **Arrêter le kiosk (déverrouiller)** : repasse sur l'écran de config sans verrou (maintenance)
+- **Désactiver complètement le mode kiosk** : retire le statut Device Owner **sans factory reset**
 
 ### Retrait via ADB (builds **debug** uniquement)
 Un build **debug** est `testOnly` → retrait possible sans factory reset :

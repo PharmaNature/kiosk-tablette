@@ -39,6 +39,20 @@ class KioskConfig(context: Context) {
             prefs.edit().putInt(KEY_TAPS, value.coerceIn(MIN_TAPS, MAX_TAPS)).apply()
         }
 
+    /** Coin déclencheur : 0=haut-gauche, 1=haut-droite, 2=bas-gauche, 3=bas-droite. */
+    var corner: Int
+        get() = prefs.getInt(KEY_CORNER, DEFAULT_CORNER)
+        set(value) {
+            prefs.edit().putInt(KEY_CORNER, value.coerceIn(0, 3)).apply()
+        }
+
+    /** true quand le mode kiosk a été lancé (et doit rester actif, même après reboot). */
+    var kioskEnabled: Boolean
+        get() = prefs.getBoolean(KEY_ENABLED, false)
+        set(value) {
+            prefs.edit().putBoolean(KEY_ENABLED, value).apply()
+        }
+
     fun verifyPin(candidate: String): Boolean {
         val salt = prefs.getString(KEY_PIN_SALT, null) ?: return false
         val stored = prefs.getString(KEY_PIN_HASH, null) ?: return false
@@ -88,6 +102,8 @@ class KioskConfig(context: Context) {
         private const val PREFS = "kiosk_prefs"
         private const val KEY_URL = "url"
         private const val KEY_TAPS = "tap_count"
+        private const val KEY_CORNER = "corner"
+        private const val KEY_ENABLED = "kiosk_enabled"
         private const val KEY_PIN_HASH = "pin_hash"
         private const val KEY_PIN_SALT = "pin_salt"
 
@@ -98,6 +114,7 @@ class KioskConfig(context: Context) {
         const val DEFAULT_PIN = "1234"
 
         const val DEFAULT_TAPS = 5
+        const val DEFAULT_CORNER = 0 // haut-gauche
         const val MIN_TAPS = 3
         const val MAX_TAPS = 10
         const val MIN_PIN_LENGTH = 4

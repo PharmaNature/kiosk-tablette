@@ -2,36 +2,38 @@
 <resources>
     <string name="app_name">Kiosk PharmaNature</string>
 
-    <!-- Dialog PIN -->
+    <!-- Dialog PIN (réouverture de l'admin depuis le kiosk verrouillé) -->
     <string name="pin_title">Code administrateur</string>
     <string name="pin_hint">Code PIN</string>
     <string name="pin_wrong">Code incorrect</string>
     <string name="pin_locked">Trop de tentatives. Réessayez dans 30 secondes.</string>
-    <string name="pin_digits_only">Le code ne doit contenir que des chiffres</string>
 
     <!-- Écran admin -->
-    <string name="admin_title">Administration du kiosk</string>
-    <string name="admin_url_label">URL affichée</string>
-    <string name="admin_taps_label">Nombre de tapotements (coin haut-gauche) pour ouvrir l\'admin</string>
-    <string name="admin_save">Enregistrer</string>
-    <string name="admin_change_pin">Changer le code PIN</string>
-    <string name="admin_resume">Reprendre le kiosk</string>
-    <string name="admin_exit_temp">Quitter temporairement (maintenance)</string>
+    <string name="admin_title">Configuration du kiosk</string>
+    <string name="admin_url_label">URL à afficher</string>
+    <string name="admin_pin_label">Code PIN (laisser vide pour ne pas changer)</string>
+    <string name="admin_taps_label">Nombre de tapotements pour ouvrir l\'admin</string>
+    <string name="admin_corner_label">Coin déclencheur</string>
+    <string name="corner_tl">Haut gauche</string>
+    <string name="corner_tr">Haut droite</string>
+    <string name="corner_bl">Bas gauche</string>
+    <string name="corner_br">Bas droite</string>
+    <string name="admin_launch">Lancer le mode kiosk</string>
+    <string name="admin_stop">Arrêter le kiosk (déverrouiller)</string>
     <string name="admin_deprovision">Désactiver complètement le mode kiosk</string>
-    <string name="admin_saved">Paramètres enregistrés</string>
+
+    <!-- Validations -->
     <string name="admin_url_invalid">URL invalide (doit commencer par http:// ou https://)</string>
     <string name="admin_taps_invalid">Nombre de tapotements invalide (3 à 10)</string>
-
-    <!-- Changement de PIN -->
-    <string name="pin_new">Nouveau code PIN</string>
-    <string name="pin_confirm">Confirmer le code PIN</string>
-    <string name="pin_mismatch">Les codes ne correspondent pas</string>
     <string name="pin_too_short">Le code doit comporter au moins 4 chiffres</string>
-    <string name="pin_changed">Code PIN mis à jour</string>
+    <string name="pin_digits_only">Le code ne doit contenir que des chiffres</string>
+
+    <!-- Messages -->
+    <string name="kiosk_started">Mode kiosk lancé</string>
+    <string name="kiosk_stopped">Kiosk arrêté</string>
 
     <!-- Décommissionnement -->
     <string name="deprovision_title">Désactiver le mode kiosk ?</string>
     <string name="deprovision_msg">La tablette ne sera plus verrouillée et l\'app perdra son statut de Device Owner. À utiliser uniquement pour mettre la tablette hors service.</string>
     <string name="deprovision_done">Mode kiosk désactivé</string>
-    <string name="exit_temp_done">Kiosk déverrouillé temporairement. Il se reverrouillera au retour sur l\'app.</string>
 </resources>

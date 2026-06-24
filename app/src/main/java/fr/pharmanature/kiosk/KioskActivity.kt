@@ -25,16 +25,21 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
 /**
- * Activity unique du kiosk : affiche une WebView plein écran verrouillée.
+ * Activity HOME du kiosk. Deux états selon [KioskConfig.kioskEnabled] :
  *
- * Sortie : [tapCount] tapotements rapides dans le coin haut-gauche → saisie du PIN
- * → ouverture de [AdminActivity].
+ * - **kiosk NON lancé** : ouvre l'écran de configuration [AdminActivity] (et ne verrouille pas).
+ * - **kiosk lancé** : affiche l'URL en plein écran verrouillé (Device Owner + lock task).
+ *
+ * Sortie du kiosk : [KioskConfig.tapCount] tapotements dans le coin choisi
+ * ([KioskConfig.corner]) → saisie du PIN → [AdminActivity].
  */
 class KioskActivity : AppCompatActivity() {
 
     private lateinit var config: KioskConfig
     private lateinit var webView: WebView
+    private lateinit var root: FrameLayout
     private var loadedUrl: String = ""
+    private var adminLaunching = false
 
     // Détection des tapotements dans le coin.
     private var tapCounter = 0
@@ -60,22 +65,14 @@ class KioskActivity : AppCompatActivity() {
 
         config = KioskConfig(this)
 
-        val root = FrameLayout(this)
+        root = FrameLayout(this)
         webView = WebView(this)
         configureWebView(webView)
         webView.webViewClient = KioskWebViewClient(config.url) { recreateWebView() }
-        root.addView(
-            webView,
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
-        )
+        root.addView(webView, matchParent())
         setContentView(root)
 
-        // Gestion des encoches (displayCutout) : padding seulement si présent
-        // (0 sur une tablette sans encoche). On ne consomme PAS les insets système
-        // pour rester compatible edge-to-edge.
+        // Gestion des encoches (displayCutout) sans casser l'edge-to-edge.
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
             val cut = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
             v.setPadding(cut.left, cut.top, cut.right, cut.bottom)
@@ -86,27 +83,36 @@ class KioskActivity : AppCompatActivity() {
 
         // Applique la config Device Owner (sans effet si l'app n'est pas DO).
         KioskProvisioner.configure(this)
-
-        loadHome()
     }
 
     override fun onResume() {
         super.onResume()
+        if (!config.kioskEnabled) {
+            // Mode configuration : déverrouiller et montrer l'écran admin.
+            stopLockIfActive()
+            if (!adminLaunching) {
+                adminLaunching = true
+                startActivity(Intent(this, AdminActivity::class.java))
+            }
+            return
+        }
+        // Mode kiosk verrouillé.
         hideSystemBars()
         startLockTaskIfNeeded()
-        // Recharge si l'URL a changé via l'écran admin.
         if (config.url != loadedUrl) loadHome()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        adminLaunching = false
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        // L'immersive mode se réinitialise à chaque changement de focus (clavier,
-        // <select>, dialog). On le réapplique systématiquement.
-        if (hasFocus) hideSystemBars()
+        if (hasFocus && config.kioskEnabled) hideSystemBars()
     }
 
     override fun onDestroy() {
-        // Détacher la WebView du layout avant destruction pour éviter les fuites.
         (webView.parent as? FrameLayout)?.removeView(webView)
         webView.destroy()
         super.onDestroy()
@@ -120,9 +126,18 @@ class KioskActivity : AppCompatActivity() {
     }
 
     private fun handleCornerTap(x: Float, y: Float) {
-        val cornerPx = CORNER_DP * resources.displayMetrics.density
+        if (!config.kioskEnabled) return
+        val c = CORNER_DP * resources.displayMetrics.density
+        val w = root.width
+        val h = root.height
+        val inCorner = when (config.corner) {
+            1 -> x >= w - c && y <= c          // haut-droite
+            2 -> x <= c && y >= h - c          // bas-gauche
+            3 -> x >= w - c && y >= h - c      // bas-droite
+            else -> x <= c && y <= c           // haut-gauche
+        }
         val now = SystemClock.uptimeMillis()
-        if (x <= cornerPx && y <= cornerPx) {
+        if (inCorner) {
             if (now - lastTapTime > TAP_WINDOW_MS) tapCounter = 0
             tapCounter++
             lastTapTime = now
@@ -161,7 +176,7 @@ class KioskActivity : AppCompatActivity() {
             .setNegativeButton(android.R.string.cancel) { d, _ -> d.dismiss() }
             .setOnDismissListener {
                 pinDialogShowing = false
-                hideSystemBars()
+                if (config.kioskEnabled) hideSystemBars()
             }
             .show()
     }
@@ -197,7 +212,6 @@ class KioskActivity : AppCompatActivity() {
         web.isVerticalScrollBarEnabled = false
         web.isHorizontalScrollBarEnabled = false
         web.overScrollMode = View.OVER_SCROLL_NEVER
-        // Désactiver le menu contextuel long-press (copier / sélectionner).
         web.isLongClickable = false
         web.setOnLongClickListener { true }
     }
@@ -209,20 +223,14 @@ class KioskActivity : AppCompatActivity() {
 
     /** Recrée une WebView saine après un crash du moteur de rendu. */
     private fun recreateWebView() {
-        val root = webView.parent as? FrameLayout ?: return
         root.removeView(webView)
         webView.destroy()
         webView = WebView(this)
         configureWebView(webView)
         webView.webViewClient = KioskWebViewClient(config.url) { recreateWebView() }
-        root.addView(
-            webView,
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
-        )
-        loadHome()
+        root.addView(webView, matchParent())
+        loadedUrl = ""
+        if (config.kioskEnabled) loadHome()
     }
 
     // --- Plein écran / lock task ---
@@ -235,7 +243,6 @@ class KioskActivity : AppCompatActivity() {
     }
 
     private fun startLockTaskIfNeeded() {
-        if (maintenanceMode) return
         if (!KioskProvisioner.isDeviceOwner(this)) return
         val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         if (am.lockTaskModeState == ActivityManager.LOCK_TASK_MODE_NONE) {
@@ -243,17 +250,22 @@ class KioskActivity : AppCompatActivity() {
         }
     }
 
+    private fun stopLockIfActive() {
+        val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        if (am.lockTaskModeState != ActivityManager.LOCK_TASK_MODE_NONE) {
+            runCatching { stopLockTask() }
+        }
+    }
+
+    private fun matchParent() = FrameLayout.LayoutParams(
+        FrameLayout.LayoutParams.MATCH_PARENT,
+        FrameLayout.LayoutParams.MATCH_PARENT
+    )
+
     companion object {
         private const val CORNER_DP = 120f       // taille de la zone "coin" sensible aux tapotements
         private const val TAP_WINDOW_MS = 800L   // délai max entre deux tapotements
         private const val MAX_PIN_ATTEMPTS = 5   // tentatives avant verrouillage temporaire
         private const val PIN_LOCKOUT_MS = 30_000L
-
-        /**
-         * Mode maintenance : quand true, le kiosk ne se reverrouille pas automatiquement
-         * (utilisé par "Quitter temporairement"). Repassé à false en reprenant le kiosk.
-         */
-        @JvmStatic
-        var maintenanceMode = false
     }
 }
