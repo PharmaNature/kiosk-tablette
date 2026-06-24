@@ -83,7 +83,9 @@ class AdminActivity : AppCompatActivity() {
         // la tablette redevient utilisable, on peut relancer sans PC.
         KioskProvisioner.release(this)
         Toast.makeText(this, R.string.kiosk_stopped, Toast.LENGTH_SHORT).show()
-        finish()
+        // finishAffinity : ferme TOUTE l'app (admin + kiosk) -> on sort vraiment sur la
+        // tablette, sans reboucler sur l'écran admin.
+        finishAffinity()
     }
 
     private fun confirmDeprovision() {

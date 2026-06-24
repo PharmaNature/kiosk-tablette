@@ -191,7 +191,13 @@ class KioskActivity : AppCompatActivity() {
             .setPositiveButton(android.R.string.ok) { d, _ ->
                 if (config.verifyPin(input.text.toString())) {
                     failedPinAttempts = 0
+                    // PIN correct = on LIBÈRE la tablette : on arrête le kiosk, on déverrouille
+                    // et on lève les restrictions, puis on ouvre l'admin. Plus bloqué.
+                    config.kioskEnabled = false
+                    runCatching { stopLockTask() }
+                    KioskProvisioner.release(this)
                     startActivity(Intent(this, AdminActivity::class.java))
+                    finish()
                 } else {
                     onWrongPin()
                 }
