@@ -1,15 +1,7 @@
-import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-}
-
-// Lecture du keystore de signature release (fichier local, NON versionné).
-// S'il est absent, le build release n'est pas signé (utile pour un build de test).
-val keystorePropsFile = rootProject.file("keystore.properties")
-val keystoreProps = Properties().apply {
-    if (keystorePropsFile.exists()) keystorePropsFile.inputStream().use { load(it) }
 }
 
 android {
@@ -24,18 +16,24 @@ android {
         versionName = "1.0"
     }
 
+    // Clé de signature FIXE (committée) : toutes les versions partagent la même
+    // signature, donc `adb install -r` met à jour SANS désinstaller — le Device
+    // Owner et la config sont conservés. Fini les "signatures do not match".
     signingConfigs {
-        if (keystorePropsFile.exists()) {
-            create("release") {
-                storeFile = file(keystoreProps.getProperty("storeFile"))
-                storePassword = keystoreProps.getProperty("storePassword")
-                keyAlias = keystoreProps.getProperty("keyAlias")
-                keyPassword = keystoreProps.getProperty("keyPassword")
-            }
+        create("stable") {
+            storeFile = rootProject.file("signing/kiosk.p12")
+            storePassword = "pharmanature"
+            keyAlias = "kiosk"
+            keyPassword = "pharmanature"
+            storeType = "PKCS12"
         }
     }
 
     buildTypes {
+        debug {
+            // Build debug = adb reste utilisable (recovery) ; signé avec la clé fixe.
+            signingConfig = signingConfigs.getByName("stable")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
@@ -43,12 +41,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            if (keystorePropsFile.exists()) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            signingConfig = signingConfigs.getByName("stable")
         }
-        // Le build debug injecte automatiquement android:testOnly=true,
-        // ce qui permet de retirer le Device Owner via `adb dpm remove-active-admin`.
     }
 
     compileOptions {
@@ -61,7 +55,6 @@ android {
     }
 }
 
-// Nouveau DSL Kotlin (l'ancien android.kotlinOptions est déprécié).
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_17

@@ -88,9 +88,6 @@ class KioskActivity : AppCompatActivity() {
         }
 
         onBackPressedDispatcher.addCallback(this, backCallback)
-
-        // Applique la config Device Owner (sans effet si l'app n'est pas DO).
-        KioskProvisioner.configure(this)
     }
 
     override fun onResume() {
@@ -105,6 +102,9 @@ class KioskActivity : AppCompatActivity() {
             return
         }
         // Mode kiosk verrouillé.
+        // Ré-arme la liste blanche + restrictions à chaque reprise (auto-réparation :
+        // fonctionne même après une réactivation du Device Owner, sans reboot).
+        KioskProvisioner.configure(this)
         hideSystemBars()
         applyRemoteCompat(webView)
         startLockTaskIfNeeded()
