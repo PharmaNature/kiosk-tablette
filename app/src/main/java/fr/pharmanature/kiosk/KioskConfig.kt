@@ -16,7 +16,11 @@ class KioskConfig(context: Context) {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     init {
-        if (!prefs.contains(KEY_PIN)) pin = DEFAULT_PIN
+        // Initialise le PIN par défaut au premier lancement (écriture directe :
+        // la propriété `pin` est déclarée plus bas).
+        if (!prefs.contains(KEY_PIN)) {
+            prefs.edit().putString(KEY_PIN, DEFAULT_PIN).apply()
+        }
     }
 
     var url: String
