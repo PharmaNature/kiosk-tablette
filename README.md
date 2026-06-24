@@ -107,7 +107,8 @@ adb shell dumpsys device_policy | findstr "Device Owner"
 
 ### Accès admin (sur la tablette)
 **N tapotements** (le nombre choisi) dans le **coin choisi** → saisir le **PIN** → écran d'administration :
-- Modifier l'**URL**, le **PIN** (champ vide = inchangé), le **nombre de tapotements**, le **coin**
+- Modifier l'**URL**, le **PIN**, le **nombre de tapotements**, le **coin** (tous **obligatoires**)
+- Case **« Compatible contrôle à distance (RustDesk) »** (rendu logiciel, évite l'écran noir)
 - **Lancer le mode kiosk** (applique les réglages et re-verrouille)
 - **Arrêter le kiosk (déverrouiller)** : repasse sur l'écran de config sans verrou (maintenance)
 - **Désactiver complètement le mode kiosk** : retire le statut Device Owner **sans factory reset**

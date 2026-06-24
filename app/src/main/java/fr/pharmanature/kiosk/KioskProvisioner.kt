@@ -54,6 +54,9 @@ object KioskProvisioner {
                 dpm.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_NONE)
             }
         }
+        // Désactive explicitement la barre de statut (notifications + réglages rapides),
+        // même hors lock task : on ne peut plus la dérouler.
+        runCatching { dpm.setStatusBarDisabled(admin, true) }
 
         // 2) App = HOME persistante (relance au boot et après crash).
         val filter = IntentFilter(Intent.ACTION_MAIN).apply {
@@ -95,6 +98,7 @@ object KioskProvisioner {
         runCatching {
             dpm.setGlobalSetting(admin, Settings.Global.STAY_ON_WHILE_PLUGGED_IN, "0")
         }
+        runCatching { dpm.setStatusBarDisabled(admin, false) }
         runCatching { dpm.clearPackagePersistentPreferredActivities(admin, context.packageName) }
         runCatching { dpm.clearDeviceOwnerApp(context.packageName) }
     }

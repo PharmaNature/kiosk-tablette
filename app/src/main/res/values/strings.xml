@@ -11,9 +11,10 @@
     <!-- Écran admin -->
     <string name="admin_title">Configuration du kiosk</string>
     <string name="admin_url_label">URL à afficher</string>
-    <string name="admin_pin_label">Code PIN (laisser vide pour ne pas changer)</string>
-    <string name="admin_taps_label">Nombre de tapotements pour ouvrir l\'admin</string>
+    <string name="admin_pin_label">Code PIN (4 chiffres, obligatoire)</string>
+    <string name="admin_taps_label">Nombre de tapotements pour ouvrir l\'admin (obligatoire)</string>
     <string name="admin_corner_label">Coin déclencheur</string>
+    <string name="admin_remote_label">Compatible contrôle à distance (RustDesk)</string>
     <string name="corner_tl">Haut gauche</string>
     <string name="corner_tr">Haut droite</string>
     <string name="corner_bl">Bas gauche</string>
@@ -23,8 +24,8 @@
     <string name="admin_deprovision">Désactiver complètement le mode kiosk</string>
 
     <!-- Validations -->
-    <string name="admin_url_invalid">URL invalide (doit commencer par http:// ou https://)</string>
-    <string name="admin_taps_invalid">Nombre de tapotements invalide (3 à 10)</string>
+    <string name="admin_url_invalid">URL obligatoire (doit commencer par http:// ou https://)</string>
+    <string name="admin_taps_invalid">Tapotements obligatoires (nombre entre 3 et 10)</string>
     <string name="pin_too_short">Le code doit comporter au moins 4 chiffres</string>
     <string name="pin_digits_only">Le code ne doit contenir que des chiffres</string>
 

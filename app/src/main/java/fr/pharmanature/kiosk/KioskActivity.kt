@@ -98,6 +98,7 @@ class KioskActivity : AppCompatActivity() {
         }
         // Mode kiosk verrouillé.
         hideSystemBars()
+        applyRemoteCompat(webView)
         startLockTaskIfNeeded()
         if (config.url != loadedUrl) loadHome()
     }
@@ -214,6 +215,18 @@ class KioskActivity : AppCompatActivity() {
         web.overScrollMode = View.OVER_SCROLL_NEVER
         web.isLongClickable = false
         web.setOnLongClickListener { true }
+        applyRemoteCompat(web)
+    }
+
+    /**
+     * Rendu logiciel = WebView capturable par les outils de contrôle distant (RustDesk),
+     * sinon elle apparaît en noir. Désactivable depuis l'admin si le rendu est trop lent.
+     */
+    private fun applyRemoteCompat(web: WebView) {
+        web.setLayerType(
+            if (config.remoteCompat) View.LAYER_TYPE_SOFTWARE else View.LAYER_TYPE_HARDWARE,
+            null
+        )
     }
 
     private fun loadHome() {

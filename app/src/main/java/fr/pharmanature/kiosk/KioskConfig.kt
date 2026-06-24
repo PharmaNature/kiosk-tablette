@@ -2,19 +2,13 @@ package fr.pharmanature.kiosk
 
 import android.content.Context
 import android.content.SharedPreferences
-import java.security.SecureRandom
-import javax.crypto.SecretKeyFactory
-import javax.crypto.spec.PBEKeySpec
 
 /**
- * Configuration persistée du kiosk (SharedPreferences).
+ * Configuration persistée du kiosk (SharedPreferences privées de l'app).
  *
- * - [url]       : page web affichée (modifiable depuis l'écran admin).
- * - [tapCount]  : nombre de tapotements dans le coin pour ouvrir l'admin.
- * - PIN         : stocké HACHÉ (SHA-256 + sel aléatoire), jamais en clair.
- *
- * Au premier lancement, un PIN par défaut ([DEFAULT_PIN]) est initialisé :
- * il DOIT être changé via l'écran admin avant déploiement.
+ * Le PIN est stocké en clair : stockage privé à l'app, `allowBackup=false`, et l'ADB
+ * est désactivé en build release. Un PIN à 4 chiffres n'apporte de toute façon pas de
+ * sécurité cryptographique forte ; le but est d'empêcher la sortie côté utilisateur.
  */
 class KioskConfig(context: Context) {
 
@@ -22,9 +16,7 @@ class KioskConfig(context: Context) {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     init {
-        if (!prefs.contains(KEY_PIN_HASH)) {
-            setPin(DEFAULT_PIN)
-        }
+        if (!prefs.contains(KEY_PIN)) pin = DEFAULT_PIN
     }
 
     var url: String
@@ -53,44 +45,23 @@ class KioskConfig(context: Context) {
             prefs.edit().putBoolean(KEY_ENABLED, value).apply()
         }
 
-    fun verifyPin(candidate: String): Boolean {
-        val salt = prefs.getString(KEY_PIN_SALT, null) ?: return false
-        val stored = prefs.getString(KEY_PIN_HASH, null) ?: return false
-        return constantTimeEquals(hash(candidate, salt), stored)
-    }
-
-    fun setPin(newPin: String) {
-        val salt = newSalt()
-        prefs.edit()
-            .putString(KEY_PIN_SALT, salt)
-            .putString(KEY_PIN_HASH, hash(newPin, salt))
-            .apply()
-    }
-
-    private fun newSalt(): String {
-        val bytes = ByteArray(16)
-        SecureRandom().nextBytes(bytes)
-        return bytes.toHex()
-    }
-
-    // PBKDF2 (dérivation lente) pour ralentir un éventuel bruteforce hors-ligne du PIN.
-    // PBKDF2WithHmacSHA1 est disponible dès l'API 19 (contrairement à ...SHA256, API 26+),
-    // ce qui respecte minSdk 24.
-    private fun hash(value: String, saltHex: String): String {
-        val spec = PBEKeySpec(value.toCharArray(), saltHex.hexToBytes(), PBKDF2_ITERATIONS, 256)
-        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
-        return factory.generateSecret(spec).encoded.toHex()
-    }
-
-    private fun ByteArray.toHex(): String =
-        joinToString("") { "%02x".format(it.toInt() and 0xFF) }
-
-    private fun String.hexToBytes(): ByteArray =
-        ByteArray(length / 2) {
-            ((this[it * 2].digitToInt(16) shl 4) or this[it * 2 + 1].digitToInt(16)).toByte()
+    /** Rendu logiciel de la WebView : nécessaire pour la voir via contrôle distant (RustDesk),
+     *  sinon écran noir. Coût : rendu un peu moins fluide. */
+    var remoteCompat: Boolean
+        get() = prefs.getBoolean(KEY_REMOTE, true)
+        set(value) {
+            prefs.edit().putBoolean(KEY_REMOTE, value).apply()
         }
 
-    /** Comparaison à temps constant pour éviter les attaques temporelles. */
+    var pin: String
+        get() = prefs.getString(KEY_PIN, DEFAULT_PIN) ?: DEFAULT_PIN
+        set(value) {
+            prefs.edit().putString(KEY_PIN, value).apply()
+        }
+
+    fun verifyPin(candidate: String): Boolean = constantTimeEquals(candidate, pin)
+
+    /** Comparaison à temps constant (évite les attaques temporelles). */
     private fun constantTimeEquals(a: String, b: String): Boolean {
         if (a.length != b.length) return false
         var result = 0
@@ -104,20 +75,15 @@ class KioskConfig(context: Context) {
         private const val KEY_TAPS = "tap_count"
         private const val KEY_CORNER = "corner"
         private const val KEY_ENABLED = "kiosk_enabled"
-        private const val KEY_PIN_HASH = "pin_hash"
-        private const val KEY_PIN_SALT = "pin_salt"
+        private const val KEY_REMOTE = "remote_compat"
+        private const val KEY_PIN = "pin"
 
-        // URL par défaut de la tablette PharmaNature.
         const val DEFAULT_URL = "http://172.16.40.54:5173/"
-
-        // PIN initial — À CHANGER via l'écran admin avant déploiement.
         const val DEFAULT_PIN = "1234"
-
         const val DEFAULT_TAPS = 5
         const val DEFAULT_CORNER = 0 // haut-gauche
         const val MIN_TAPS = 3
         const val MAX_TAPS = 10
         const val MIN_PIN_LENGTH = 4
-        private const val PBKDF2_ITERATIONS = 120_000
     }
 }

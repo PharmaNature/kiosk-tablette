@@ -2,6 +2,7 @@ package fr.pharmanature.kiosk
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Toast
@@ -11,10 +12,9 @@ import androidx.appcompat.app.AppCompatActivity
 /**
  * Écran d'accueil / configuration du kiosk.
  *
- * - C'est l'écran affiché tant que le mode kiosk n'est pas lancé (et après l'avoir arrêté).
- * - On y règle : URL, code PIN, nombre de tapotements et coin déclencheur.
- * - Le bouton « Lancer le mode kiosk » verrouille la tablette sur l'URL.
- * - Réouvert depuis le kiosk verrouillé via tapotements + PIN.
+ * Affiché tant que le mode kiosk n'est pas lancé (et après l'avoir arrêté).
+ * TOUS les champs sont obligatoires pour pouvoir lancer le kiosk.
+ * Réouvert depuis le kiosk verrouillé via tapotements + PIN.
  */
 class AdminActivity : AppCompatActivity() {
 
@@ -25,23 +25,22 @@ class AdminActivity : AppCompatActivity() {
         setContentView(R.layout.activity_admin)
         config = KioskConfig(this)
 
-        val inputUrl = findViewById<EditText>(R.id.inputUrl)
-        val inputTaps = findViewById<EditText>(R.id.inputTaps)
-        val groupCorner = findViewById<RadioGroup>(R.id.groupCorner)
-
-        inputUrl.setText(config.url)
-        inputTaps.setText(config.tapCount.toString())
-        groupCorner.check(cornerToRadioId(config.corner))
+        // Pré-remplissage avec les valeurs courantes (PIN par défaut = 1234).
+        findViewById<EditText>(R.id.inputUrl).setText(config.url)
+        findViewById<EditText>(R.id.inputPin).setText(config.pin)
+        findViewById<EditText>(R.id.inputTaps).setText(config.tapCount.toString())
+        findViewById<RadioGroup>(R.id.groupCorner).check(cornerToRadioId(config.corner))
+        findViewById<CheckBox>(R.id.checkRemote).isChecked = config.remoteCompat
 
         findViewById<Button>(R.id.btnLaunch).setOnClickListener { launchKiosk() }
         findViewById<Button>(R.id.btnStop).setOnClickListener { stopKiosk() }
         findViewById<Button>(R.id.btnDeprovision).setOnClickListener { confirmDeprovision() }
     }
 
-    /** Valide + enregistre les réglages. Retourne false si invalide. */
+    /** Valide + enregistre. TOUS les champs sont obligatoires. Retourne false si invalide. */
     private fun saveSettings(): Boolean {
         val url = findViewById<EditText>(R.id.inputUrl).text.toString().trim()
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        if (url.isEmpty() || (!url.startsWith("http://") && !url.startsWith("https://"))) {
             Toast.makeText(this, R.string.admin_url_invalid, Toast.LENGTH_LONG).show()
             return false
         }
@@ -50,22 +49,20 @@ class AdminActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.admin_taps_invalid, Toast.LENGTH_LONG).show()
             return false
         }
-        // PIN : optionnel. Vide = inchangé.
         val pin = findViewById<EditText>(R.id.inputPin).text.toString()
-        if (pin.isNotEmpty()) {
-            if (pin.length < KioskConfig.MIN_PIN_LENGTH) {
-                Toast.makeText(this, R.string.pin_too_short, Toast.LENGTH_LONG).show()
-                return false
-            }
-            if (!pin.all { it.isDigit() }) {
-                Toast.makeText(this, R.string.pin_digits_only, Toast.LENGTH_LONG).show()
-                return false
-            }
-            config.setPin(pin)
+        if (pin.length < KioskConfig.MIN_PIN_LENGTH) {
+            Toast.makeText(this, R.string.pin_too_short, Toast.LENGTH_LONG).show()
+            return false
+        }
+        if (!pin.all { it.isDigit() }) {
+            Toast.makeText(this, R.string.pin_digits_only, Toast.LENGTH_LONG).show()
+            return false
         }
         config.url = url
         config.tapCount = taps
+        config.pin = pin
         config.corner = radioIdToCorner(findViewById<RadioGroup>(R.id.groupCorner).checkedRadioButtonId)
+        config.remoteCompat = findViewById<CheckBox>(R.id.checkRemote).isChecked
         return true
     }
 
@@ -78,8 +75,6 @@ class AdminActivity : AppCompatActivity() {
     }
 
     private fun stopKiosk() {
-        // Enregistre les réglages s'ils sont valides, mais n'empêche pas l'arrêt.
-        saveSettings()
         config.kioskEnabled = false
         runCatching { stopLockTask() }
         Toast.makeText(this, R.string.kiosk_stopped, Toast.LENGTH_SHORT).show()
