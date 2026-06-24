@@ -12,7 +12,9 @@ App Android transformant une tablette en **kiosk verrouillé**.
 - **URL par défaut** : `http://172.16.40.54:5173/` (modifiable dans l'écran admin, sans recompiler)
 - **PIN initial** : `1234` — ⚠️ **à changer** dans l'écran admin (champ PIN)
 - **Verrouillage** : mode **Device Owner** (lock task, pas de barre système, relance au boot,
-  ADB / factory reset / safe boot désactivés). Le verrouillage réel exige le provisioning ADB (§4).
+  ADB / factory reset / safe boot désactivés, **volume figé**, **boutons volume neutralisés**,
+  **écran de verrouillage désactivé** → reboot/veille = retour direct au kiosk).
+  Le verrouillage réel exige le provisioning ADB (§4).
 
 ---
 

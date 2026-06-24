@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.SystemClock
 import android.text.InputType
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -61,7 +62,14 @@ class KioskActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // Écran allumé + affichage par-dessus le verrouillage (reboot / sortie de veille
+        // -> on revient directement sur le kiosk, sans étape de déverrouillage).
+        window.addFlags(
+            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+                or WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
+                or WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+        )
 
         config = KioskConfig(this)
 
@@ -124,6 +132,18 @@ class KioskActivity : AppCompatActivity() {
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         if (ev.actionMasked == MotionEvent.ACTION_DOWN) handleCornerTap(ev.x, ev.y)
         return super.dispatchTouchEvent(ev)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // En mode kiosk, les boutons volume ne font RIEN (même pas le curseur de volume).
+        if (this::config.isInitialized && config.kioskEnabled) {
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_VOLUME_UP,
+                KeyEvent.KEYCODE_VOLUME_DOWN,
+                KeyEvent.KEYCODE_VOLUME_MUTE -> return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     private fun handleCornerTap(x: Float, y: Float) {

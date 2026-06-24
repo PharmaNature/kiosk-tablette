@@ -58,6 +58,10 @@ object KioskProvisioner {
         // même hors lock task : on ne peut plus la dérouler.
         runCatching { dpm.setStatusBarDisabled(admin, true) }
 
+        // Désactive l'écran de verrouillage : au boot / à la sortie de veille,
+        // on arrive directement sur le kiosk, sans déverrouillage.
+        runCatching { dpm.setKeyguardDisabled(admin, true) }
+
         // 2) App = HOME persistante (relance au boot et après crash).
         val filter = IntentFilter(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_HOME)
@@ -99,6 +103,7 @@ object KioskProvisioner {
             dpm.setGlobalSetting(admin, Settings.Global.STAY_ON_WHILE_PLUGGED_IN, "0")
         }
         runCatching { dpm.setStatusBarDisabled(admin, false) }
+        runCatching { dpm.setKeyguardDisabled(admin, false) }
         runCatching { dpm.clearPackagePersistentPreferredActivities(admin, context.packageName) }
         runCatching { dpm.clearDeviceOwnerApp(context.packageName) }
     }
