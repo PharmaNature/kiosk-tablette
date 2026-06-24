@@ -11,18 +11,16 @@
         android:supportsRtl="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.Kiosk"
-        android:hardwareAccelerated="false"
         android:enableOnBackInvokedCallback="true">
 
-        <!-- Activity kiosk = launcher HOME : relance automatique au boot et après crash.
-             lockTaskMode=if_whitelisted : entre automatiquement en lock task quand le
-             package est whitelisté par le Device Owner. -->
+        <!-- Activity kiosk = launcher HOME. Le verrouillage (lock task) est piloté
+             EXCLUSIVEMENT par code (startLockTask/stopLockTask) : pas de lockTaskMode
+             auto, pour éviter les états verrouillés coincés. -->
         <activity
             android:name=".KioskActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:excludeFromRecents="true"
-            android:lockTaskMode="if_whitelisted"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize|density|uiMode">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,7 +34,6 @@
         <activity
             android:name=".AdminActivity"
             android:exported="false"
-            android:lockTaskMode="if_whitelisted"
             android:theme="@style/Theme.Kiosk.Admin" />
 
         <!-- DeviceAdminReceiver requis pour devenir Device Owner. -->

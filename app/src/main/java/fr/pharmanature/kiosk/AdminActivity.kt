@@ -3,7 +3,6 @@ package fr.pharmanature.kiosk
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
-import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Toast
@@ -30,7 +29,6 @@ class AdminActivity : AppCompatActivity() {
         findViewById<EditText>(R.id.inputPin).setText(config.pin)
         findViewById<EditText>(R.id.inputTaps).setText(config.tapCount.toString())
         findViewById<RadioGroup>(R.id.groupCorner).check(cornerToRadioId(config.corner))
-        findViewById<CheckBox>(R.id.checkRemote).isChecked = config.remoteCompat
 
         findViewById<Button>(R.id.btnLaunch).setOnClickListener { launchKiosk() }
         findViewById<Button>(R.id.btnStop).setOnClickListener { stopKiosk() }
@@ -61,7 +59,6 @@ class AdminActivity : AppCompatActivity() {
         config.tapCount = taps
         config.pin = pin
         config.corner = radioIdToCorner(findViewById<RadioGroup>(R.id.groupCorner).checkedRadioButtonId)
-        config.remoteCompat = findViewById<CheckBox>(R.id.checkRemote).isChecked
         return true
     }
 

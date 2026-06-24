@@ -111,13 +111,6 @@
                 android:text="@string/corner_br" />
         </RadioGroup>
 
-        <CheckBox
-            android:id="@+id/checkRemote"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:text="@string/admin_remote_label" />
-
         <!-- Action principale -->
         <Button
             android:id="@+id/btnLaunch"
