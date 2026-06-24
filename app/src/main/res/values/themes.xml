@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Thème kiosk : plein écran, sans barre d'action, fond noir. -->
+    <style name="Theme.Kiosk" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/kiosk_bg</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <!-- Thème de l'écran d'administration : clair, lisible. -->
+    <style name="Theme.Kiosk.Admin" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/white</item>
+    </style>
+</resources>

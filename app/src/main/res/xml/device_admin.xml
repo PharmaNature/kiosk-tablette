@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bloc obligatoire (même si <uses-policies> peut rester minimal) pour que
+     l'enregistrement du DeviceAdminReceiver réussisse. Un Device Owner ne requiert
+     pas de policy explicite, mais on les liste par cohérence. -->
+<device-admin xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-policies>
+        <limit-password />
+        <watch-login />
+        <reset-password />
+        <force-lock />
+        <wipe-data />
+        <disable-keyguard-features />
+    </uses-policies>
+</device-admin>

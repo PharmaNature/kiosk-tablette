@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Le trafic en clair (HTTP) est bloqué par défaut depuis targetSdk 28.
+     On l'autorise UNIQUEMENT vers l'hôte du kiosk, pas globalement. -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">172.16.40.54</domain>
+    </domain-config>
+</network-security-config>

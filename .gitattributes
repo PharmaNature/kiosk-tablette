@@ -1,0 +1,15 @@
+# Normalisation des fins de ligne
+* text=auto eol=lf
+
+# Scripts Windows en CRLF
+*.bat text eol=crlf
+
+# Le wrapper Unix DOIT rester en LF
+gradlew text eol=lf
+
+# Binaires
+*.jar binary
+*.keystore binary
+*.jks binary
+*.png binary
+*.webp binary

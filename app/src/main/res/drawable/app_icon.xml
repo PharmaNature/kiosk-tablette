@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#0B6E4F"
+        android:pathData="M0,0h108v108h-108z" />
+    <!-- Cadenas blanc stylisé -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,28 C45.7,28 39,34.7 39,43 L39,50 L33,50 C31.3,50 30,51.3 30,53 L30,77 C30,78.7 31.3,80 33,80 L75,80 C76.7,80 78,78.7 78,77 L78,53 C78,51.3 76.7,50 75,50 L69,50 L69,43 C69,34.7 62.3,28 54,28 Z M54,36 C57.9,36 61,39.1 61,43 L61,50 L47,50 L47,43 C47,39.1 50.1,36 54,36 Z" />
+</vector>
