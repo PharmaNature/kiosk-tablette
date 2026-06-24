@@ -1,7 +1,7 @@
 name: Build APK
 
-# Compile l'APK debug dans le cloud (aucune installation locale requise).
-# Déclenchable à la main (onglet Actions → Build APK → Run workflow) ou à chaque push.
+# Compile l'APK debug dans le cloud (aucune installation locale requise)
+# et le publie dans la Release GitHub "latest" (onglet Releases du dépôt).
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # requis pour publier la release
 
 jobs:
   build:
@@ -35,9 +35,22 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace --no-daemon
 
-      - name: Publier l'APK comme artefact
+      - name: Renommer l'APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk kiosk-tablette.apk
+
+      - name: Artefact (sauvegarde)
         uses: actions/upload-artifact@v4
         with:
           name: kiosk-tablette-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: kiosk-tablette.apk
           if-no-files-found: error
+
+      - name: Publier dans la Release "latest"
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: APK kiosk (dernier build debug)
+          body: |
+            APK debug le plus récent, compilé automatiquement depuis `main`.
+            Installation : voir le README (sideload ou `adb install kiosk-tablette.apk`).
+          files: kiosk-tablette.apk
