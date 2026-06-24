@@ -7,7 +7,6 @@ import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 /**
@@ -35,7 +34,6 @@ class AdminActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnLaunch).setOnClickListener { launchKiosk() }
         findViewById<Button>(R.id.btnStop).setOnClickListener { stopKiosk() }
-        findViewById<Button>(R.id.btnDeprovision).setOnClickListener { confirmDeprovision() }
     }
 
     /** Valide + enregistre. TOUS les champs sont obligatoires. Retourne false si invalide. */
@@ -86,21 +84,6 @@ class AdminActivity : AppCompatActivity() {
         // finishAffinity : ferme TOUTE l'app (admin + kiosk) -> on sort vraiment sur la
         // tablette, sans reboucler sur l'écran admin.
         finishAffinity()
-    }
-
-    private fun confirmDeprovision() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.deprovision_title)
-            .setMessage(R.string.deprovision_msg)
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                config.kioskEnabled = false
-                runCatching { stopLockTask() }
-                KioskProvisioner.deprovision(this)
-                Toast.makeText(this, R.string.deprovision_done, Toast.LENGTH_LONG).show()
-                finishAffinity()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
     }
 
     private fun cornerToRadioId(corner: Int): Int = when (corner) {

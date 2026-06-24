@@ -144,28 +144,5 @@
             android:textSize="12sp"
             android:textColor="#666666" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="28dp"
-            android:layout_marginBottom="16dp"
-            android:background="#DDDDDD" />
-
-        <Button
-            android:id="@+id/btnDeprovision"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="#B00020"
-            android:text="@string/admin_deprovision"
-            android:textColor="#FFFFFF" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/admin_deprovision_desc"
-            android:textSize="12sp"
-            android:textColor="#B00020" />
-
     </LinearLayout>
 </ScrollView>
