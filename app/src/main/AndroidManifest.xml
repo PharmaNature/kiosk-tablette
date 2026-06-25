@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="false"
@@ -35,6 +36,16 @@
             android:name=".AdminActivity"
             android:exported="false"
             android:theme="@style/Theme.Kiosk.Admin" />
+
+        <!-- Force le mode kiosk au démarrage de la tablette. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
 
         <!-- DeviceAdminReceiver requis pour devenir Device Owner. -->
         <receiver
