@@ -236,7 +236,7 @@ class KioskActivity : AppCompatActivity() {
 
     // --- WebView ---
 
-    @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
+    @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility", "JavascriptInterface")
     private fun configureWebView(web: WebView) {
         web.settings.apply {
             javaScriptEnabled = true
@@ -256,6 +256,8 @@ class KioskActivity : AppCompatActivity() {
         web.overScrollMode = View.OVER_SCROLL_NEVER
         web.isLongClickable = false
         web.setOnLongClickListener { true }
+        // Pont batterie pour le dashboard : window.Android.getBatteryLevel() / isCharging()
+        web.addJavascriptInterface(BatteryBridge(this), "Android")
     }
 
     private fun loadHome() {
