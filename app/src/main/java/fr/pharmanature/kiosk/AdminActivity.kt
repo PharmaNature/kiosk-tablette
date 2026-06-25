@@ -6,6 +6,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.RadioGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 /**
@@ -32,7 +33,7 @@ class AdminActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnLaunch).setOnClickListener { launchKiosk() }
         findViewById<Button>(R.id.btnStop).setOnClickListener { stopKiosk() }
-        findViewById<Button>(R.id.btnReboot).setOnClickListener { KioskProvisioner.reboot(this) }
+        findViewById<Button>(R.id.btnReboot).setOnClickListener { confirmReboot() }
     }
 
     /** Valide + enregistre. TOUS les champs sont obligatoires. Retourne false si invalide. */
@@ -73,18 +74,22 @@ class AdminActivity : AppCompatActivity() {
     }
 
     private fun stopKiosk() {
-        // Maintenance : déverrouille et ouvre les Paramètres Android (Wi-Fi, etc.).
-        // Le kiosk reste activé -> il se re-verrouille au retour (Accueil) ou au reboot.
+        // Arrêt manuel : déverrouille, rend l'accueil à Samsung et SORT de l'app
+        // (retour à la tablette). Le kiosk reprend au prochain lancement ou redémarrage.
+        config.kioskEnabled = false
         runCatching { stopLockTask() }
-        KioskProvisioner.release(this)
+        KioskProvisioner.stopAndFreeHome(this)
         Toast.makeText(this, R.string.kiosk_stopped, Toast.LENGTH_SHORT).show()
-        runCatching {
-            startActivity(
-                Intent(android.provider.Settings.ACTION_SETTINGS)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            )
-        }
-        finish()
+        finishAffinity()
+    }
+
+    private fun confirmReboot() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.reboot_title)
+            .setMessage(R.string.reboot_msg)
+            .setPositiveButton(R.string.reboot_confirm) { _, _ -> KioskProvisioner.reboot(this) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun cornerToRadioId(corner: Int): Int = when (corner) {

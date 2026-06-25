@@ -158,6 +158,18 @@ object KioskProvisioner {
     }
 
     /**
+     * Arrêt manuel (admin) : libère tout ET rend l'accueil au launcher système,
+     * pour pouvoir SORTIR de l'app vers la tablette. Garde le Device Owner.
+     * Le kiosk reprend au prochain lancement de l'app ou au redémarrage (BootReceiver).
+     */
+    fun stopAndFreeHome(context: Context) {
+        release(context)
+        val dpm = dpm(context)
+        if (!dpm.isDeviceOwnerApp(context.packageName)) return
+        runCatching { restoreSystemLauncher(context, dpm, admin(context)) }
+    }
+
+    /**
      * Décommissionnement complet : libère tout PUIS retire le statut Device Owner
      * — SANS factory reset. La tablette redevient totalement normale.
      */
