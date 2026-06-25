@@ -37,6 +37,13 @@ object KioskProvisioner {
     fun isDeviceOwner(context: Context): Boolean =
         dpm(context).isDeviceOwnerApp(context.packageName)
 
+    /** Redémarre la tablette (Device Owner). Fiable, sans dépendre des boutons physiques. */
+    fun reboot(context: Context) {
+        val dpm = dpm(context)
+        if (!dpm.isDeviceOwnerApp(context.packageName)) return
+        runCatching { dpm.reboot(admin(context)) }
+    }
+
     /**
      * Configuration one-shot (idempotente) du Device Owner :
      * whitelist lock task, app = HOME persistante, restrictions, écran allumé.

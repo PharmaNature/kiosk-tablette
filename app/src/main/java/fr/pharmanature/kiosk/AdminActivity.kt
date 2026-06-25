@@ -32,6 +32,7 @@ class AdminActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btnLaunch).setOnClickListener { launchKiosk() }
         findViewById<Button>(R.id.btnStop).setOnClickListener { stopKiosk() }
+        findViewById<Button>(R.id.btnReboot).setOnClickListener { KioskProvisioner.reboot(this) }
     }
 
     /** Valide + enregistre. TOUS les champs sont obligatoires. Retourne false si invalide. */

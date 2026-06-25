@@ -137,5 +137,12 @@
             android:textSize="12sp"
             android:textColor="#666666" />
 
+        <Button
+            android:id="@+id/btnReboot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/admin_reboot" />
+
     </LinearLayout>
 </ScrollView>
