@@ -16,11 +16,17 @@ import android.webkit.WebViewClient
  */
 class KioskWebViewClient(
     homeUrl: String,
-    private val onRendererGone: () -> Unit
+    private val onRendererGone: () -> Unit,
+    private val onPageDone: () -> Unit
 ) : WebViewClient() {
 
     private val homeUrl: String = homeUrl
     private val allowedHost: String? = Uri.parse(homeUrl).host
+
+    override fun onPageFinished(view: WebView, url: String?) {
+        super.onPageFinished(view, url)
+        onPageDone()
+    }
 
     override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
         val url = request.url

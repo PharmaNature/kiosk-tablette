@@ -73,15 +73,18 @@ class AdminActivity : AppCompatActivity() {
     }
 
     private fun stopKiosk() {
-        config.kioskEnabled = false
+        // Maintenance : déverrouille et ouvre les Paramètres Android (Wi-Fi, etc.).
+        // Le kiosk reste activé -> il se re-verrouille au retour (Accueil) ou au reboot.
         runCatching { stopLockTask() }
-        // Libère restrictions / barre / keyguard / HOME (garde le Device Owner) :
-        // la tablette redevient utilisable, on peut relancer sans PC.
         KioskProvisioner.release(this)
         Toast.makeText(this, R.string.kiosk_stopped, Toast.LENGTH_SHORT).show()
-        // finishAffinity : ferme TOUTE l'app (admin + kiosk) -> on sort vraiment sur la
-        // tablette, sans reboucler sur l'écran admin.
-        finishAffinity()
+        runCatching {
+            startActivity(
+                Intent(android.provider.Settings.ACTION_SETTINGS)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+        }
+        finish()
     }
 
     private fun cornerToRadioId(corner: Int): Int = when (corner) {

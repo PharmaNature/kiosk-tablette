@@ -114,7 +114,8 @@ object KioskProvisioner {
         }
         runCatching { dpm.setStatusBarDisabled(admin, false) }
         runCatching { dpm.setKeyguardDisabled(admin, false) }
-        restoreSystemLauncher(context, dpm, admin)
+        // NB: on ne rend PAS l'accueil à Samsung ici -> l'app reste l'écran d'accueil,
+        // pour qu'au boot le kiosk s'affiche immédiatement (pas de bureau Samsung).
     }
 
     /**
@@ -153,6 +154,8 @@ object KioskProvisioner {
     fun deprovision(context: Context) {
         release(context)
         val dpm = dpm(context)
+        // Décommissionnement : on rend l'accueil au launcher système avant de retirer le DO.
+        runCatching { restoreSystemLauncher(context, dpm, admin(context)) }
         runCatching { dpm.clearDeviceOwnerApp(context.packageName) }
     }
 }

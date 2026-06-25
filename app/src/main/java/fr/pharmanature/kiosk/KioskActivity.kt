@@ -5,8 +5,10 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.graphics.Color
 import android.os.SystemClock
 import android.text.InputType
+import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -15,6 +17,9 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -40,6 +45,7 @@ class KioskActivity : AppCompatActivity() {
     private lateinit var config: KioskConfig
     private lateinit var webView: WebView
     private lateinit var root: FrameLayout
+    private var loadingView: View? = null
     private var loadedUrl: String = ""
 
     // Détection des tapotements dans le coin.
@@ -64,8 +70,13 @@ class KioskActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         config = KioskConfig(this)
 
-        // Kiosk non lancé -> écran de config, et on se retire (pas de WebView inutile,
-        // pas de boucle : on peut toujours quitter l'app normalement).
+        // Tablette kiosk dédiée : TOUT démarrage à froid (boot, relance) repart
+        // DIRECTEMENT en kiosk verrouillé — jamais le bureau Samsung, jamais l'admin.
+        // L'admin n'est atteignable que par tapotements + PIN (qui ouvre AdminActivity
+        // sans repasser par ce onCreate).
+        if (KioskProvisioner.isDeviceOwner(this)) config.kioskEnabled = true
+
+        // Cas hors Device Owner (test/sideload) -> écran de config.
         if (!config.kioskEnabled) {
             stopLockIfActive()
             startActivity(Intent(this, AdminActivity::class.java))
@@ -86,8 +97,10 @@ class KioskActivity : AppCompatActivity() {
         root = FrameLayout(this)
         webView = WebView(this)
         configureWebView(webView)
-        webView.webViewClient = KioskWebViewClient(config.url) { recreateWebView() }
+        webView.webViewClient = KioskWebViewClient(config.url, { recreateWebView() }, { hideLoading() })
         root.addView(webView, matchParent())
+        loadingView = buildLoadingView()
+        root.addView(loadingView, matchParent())
         setContentView(root)
 
         ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
@@ -247,8 +260,33 @@ class KioskActivity : AppCompatActivity() {
 
     private fun loadHome() {
         loadedUrl = config.url
+        showLoading()
         webView.loadUrl(loadedUrl)
     }
+
+    private fun buildLoadingView(): View {
+        val d = resources.displayMetrics.density
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setBackgroundColor(Color.WHITE)
+            addView(ImageView(this@KioskActivity).apply {
+                setImageResource(R.drawable.logo_pharmanature)
+                adjustViewBounds = true
+                layoutParams = LinearLayout.LayoutParams(
+                    (220 * d).toInt(), LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            })
+            addView(ProgressBar(this@KioskActivity).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = (28 * d).toInt() }
+            })
+        }
+    }
+
+    private fun showLoading() { loadingView?.visibility = View.VISIBLE }
+    private fun hideLoading() { loadingView?.visibility = View.GONE }
 
     /** Recrée une WebView saine après un crash du moteur de rendu. */
     private fun recreateWebView() {
@@ -256,8 +294,9 @@ class KioskActivity : AppCompatActivity() {
         webView.destroy()
         webView = WebView(this)
         configureWebView(webView)
-        webView.webViewClient = KioskWebViewClient(config.url) { recreateWebView() }
+        webView.webViewClient = KioskWebViewClient(config.url, { recreateWebView() }, { hideLoading() })
         root.addView(webView, matchParent())
+        loadingView?.bringToFront()
         loadedUrl = ""
         if (config.kioskEnabled) loadHome()
     }
