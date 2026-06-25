@@ -71,7 +71,17 @@ object KioskProvisioner {
         // on arrive directement sur le kiosk, sans déverrouillage.
         runCatching { dpm.setKeyguardDisabled(admin, true) }
 
-        // 2) App = HOME persistante (relance au boot et après crash).
+        // 2) App = SEUL écran d'accueil (HOME) par défaut. On nettoie d'abord TOUTE
+        //    préférence HOME existante (la nôtre + le launcher système Samsung qui aurait
+        //    pu être posé par un release précédent) — sinon le boot retombe sur Samsung
+        //    pendant ~10s. Puis on impose notre app.
+        runCatching {
+            val homeIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
+            context.packageManager.queryIntentActivities(homeIntent, 0)
+                .map { it.activityInfo.packageName }
+                .distinct()
+                .forEach { dpm.clearPackagePersistentPreferredActivities(admin, it) }
+        }
         val filter = IntentFilter(Intent.ACTION_MAIN).apply {
             addCategory(Intent.CATEGORY_HOME)
             addCategory(Intent.CATEGORY_DEFAULT)
