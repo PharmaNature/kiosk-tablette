@@ -49,9 +49,11 @@ object KioskProvisioner {
         // 1) Autoriser le lock task pour ce package + masquer toutes les features système.
         dpm.setLockTaskPackages(admin, arrayOf(context.packageName))
         // setLockTaskFeatures n'existe qu'à partir de l'API 28.
+        // GLOBAL_ACTIONS = menu du bouton power (Éteindre / Redémarrer) accessible en
+        // kiosk. Tout le reste (Home, Récents, notifications, barre système) reste bloqué.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             runCatching {
-                dpm.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_NONE)
+                dpm.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_GLOBAL_ACTIONS)
             }
         }
         // Désactive explicitement la barre de statut (notifications + réglages rapides),
